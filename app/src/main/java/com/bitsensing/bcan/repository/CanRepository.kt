@@ -6,7 +6,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 class CanRepository {
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://<your-pc-ip>:<port>")
+        .baseUrl("http://10.0.2.2:5000")
         .addConverterFactory(MoshiConverterFactory.create())
         .build()
 
