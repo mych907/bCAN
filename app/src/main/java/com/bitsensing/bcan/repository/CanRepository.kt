@@ -4,9 +4,9 @@ import com.bitsensing.bcan.network.ApiService
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-class CanRepository {
+class CanRepository(ipAddress: String) {
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:5000")
+        .baseUrl("http://$ipAddress:5000")
         .addConverterFactory(MoshiConverterFactory.create())
         .build()
 
