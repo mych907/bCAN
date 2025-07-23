@@ -9,8 +9,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="bCAN"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.BCAN">
+        android:supportsRtl="true">
         <activity
             android:name=".ui.MainActivity"
             android:exported="true">
