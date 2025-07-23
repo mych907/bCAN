@@ -1,6 +1,7 @@
-package com.bitsensing.bcan.ui
+package com.bitsensing.bcan
 
 import android.os.Bundle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.Spring
@@ -33,11 +34,14 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.bitsensing.bcan.ui.CanUiState
+import com.bitsensing.bcan.ui.MainViewModel
 import com.bitsensing.bcan.ui.theme.bCANTheme
 
 //class CanViewModel : ViewModel() {
@@ -65,6 +69,33 @@ import com.bitsensing.bcan.ui.theme.bCANTheme
 //    }
 //}
 
+@Composable
+fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = viewModel()) {
+    val uiState = mainViewModel.canUiState
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        when (uiState) {
+            is CanUiState.Success -> {
+                Text("Speed: ${uiState.canData.speed} km/h")
+                Text("RPM: ${uiState.canData.rpm}")
+            }
+            is CanUiState.Error -> {
+                Text("Error fetching data.")
+            }
+            is CanUiState.Loading -> {
+                CircularProgressIndicator()
+            }
+        }
+        Button(onClick = { mainViewModel.getCanData() }) {
+            Text("Refresh")
+        }
+    }
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,22 +105,22 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun MainScreen(modifier: Modifier = Modifier) {
-
-    // val viewModel: CanViewModel = viewModel()
-    Surface(modifier) {
-        Column {
-            Button(onClick = { /* TODO */ }) {
-                Text("Fetch CAN Data")
-            }
-            Button(onClick = { /* TODO */ }) {
-                Text("Fetch CAN Data")
-            }
-        }
-    }
-}
-
+//@Composable
+//fun MainScreen(modifier: Modifier = Modifier) {
+//
+//    // val viewModel: CanViewModel = viewModel()
+//    Surface(modifier) {
+//        Column(
+//            verticalArrangement = Arrangement.Center,
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Button(onClick = { /* TODO */ }) {
+//                Text("Fetch CAN Data")
+//            }
+//        }
+//    }
+//}
+//
 @Preview
 @Composable
 fun MainScreenPreview() {
