@@ -10,6 +10,8 @@ import com.bitsensing.bcan.network.CanApi
 import kotlinx.coroutines.launch
 import java.io.IOException
 import android.util.Log
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 sealed interface CanUiState {
     data class Success(val canData: CanData) : CanUiState
@@ -22,7 +24,16 @@ class MainViewModel : ViewModel() {
         private set
 
     init {
-        getCanData()
+        startAutoRefresh()
+    }
+
+    private fun startAutoRefresh() {
+        viewModelScope.launch {
+            while (isActive) {
+                getCanData()
+                delay(1000)
+            }
+        }
     }
 
     fun getCanData() {
