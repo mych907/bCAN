@@ -9,6 +9,7 @@ import com.bitsensing.bcan.data.CanData
 import com.bitsensing.bcan.network.CanApi
 import kotlinx.coroutines.launch
 import java.io.IOException
+import android.util.Log
 
 sealed interface CanUiState {
     data class Success(val canData: CanData) : CanUiState
@@ -45,7 +46,13 @@ class MainViewModel : ViewModel() {
                     CanUiState.Error
                 }
             } catch (e: IOException) {
+                Log.e("MainViewModel", "IOException, you might have a network issue.", e)
+                canUiState = CanUiState.Error
                 // Handle exceptions related to network connectivity issues (e.g., no internet)
+                CanUiState.Error
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "An unexpected error occurred.", e)
+                canUiState = CanUiState.Error
                 CanUiState.Error
             }
         }

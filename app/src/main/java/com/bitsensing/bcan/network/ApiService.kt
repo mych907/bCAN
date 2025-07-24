@@ -8,20 +8,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import com.bitsensing.bcan.data.CanData
 
-//data class CanFrame(
-//    val timestamp: String,
-//    val frames: List<Frame>
-//)
-
-//data class Frame(
-//    val id: String,
-//    val name: String,
-//    val data: List<Int>,
-//    val dlc: Int,
-//    val decoded: Map<String, String>
-//)
-
-private const val BASE_URL = "http://10.0.2.2/" // Replace with your PC's IP and port
+private const val BASE_URL = "http://10.0.2.2:8080/" // Replace with your PC's IP and port
 
 private val retrofit = Retrofit.Builder()
     .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
