@@ -97,8 +97,7 @@ fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = vie
                 latestCanData = uiState.canData
                 Text("ID: ${uiState.canData.id}")
                 Text("HEX: ${uiState.canData.rawData}")
-                val decodedMap = uiState.canData.decodedData.toMap()
-                for ((key, value) in decodedMap) {
+                for ((key, value) in uiState.canData.decodedData.toMap()) {
                     Text("$key: $value")
                 }
 
@@ -110,8 +109,7 @@ fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = vie
                 latestCanData?.let {
                     Text("ID: ${it.id}")
                     Text("HEX: ${it.rawData}")
-                    val decodedMap = it.decodedData.toMap()
-                    for ((key, value) in decodedMap) {
+                    for ((key, value) in it.decodedData.toMap()) {
                         Text("$key: $value")
                     }
                 } ?: CircularProgressIndicator()

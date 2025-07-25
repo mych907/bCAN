@@ -14,6 +14,20 @@ data class CanData(
     val decodedData: DecodedData
 )
 
+fun DecodedData.toMap(): Map<String, Any> = mapOf(
+    "FL_WheelSpeed" to flWheelSpeed,
+    "FR_WheelSpeed" to frWheelSpeed,
+    "RL_WheelSpeed" to rlWheelSpeed,
+    "RR_WheelSpeed" to rrWheelSpeed,
+    "SteeringAngle" to steeringAngle,
+    "SteeringSpeed" to steeringSpeed,
+    "Gear_Lever" to gearLever,
+    "VehSpd" to vehSpd,
+    "YAW_RATE" to yawRate,
+    "LAT_ACCEL" to latAccel,
+    "LONG_ACCEL" to longAccel
+)
+
 @Serializable
 data class DecodedData(
     @SerialName("FL_WheelSpeed")
