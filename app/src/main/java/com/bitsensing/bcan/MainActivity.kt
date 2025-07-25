@@ -37,12 +37,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.bitsensing.bcan.data.CanData
+import com.bitsensing.bcan.data.DecodedData
 import com.bitsensing.bcan.ui.CanUiState
 import com.bitsensing.bcan.ui.MainViewModel
 import com.bitsensing.bcan.ui.theme.bCANTheme
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+
+fun DecodedData.toMap(): Map<String, Any?> {
+    val json = Json.encodeToJsonElement(DecodedData.serializer(), this).jsonObject
+    return json.mapValues { it.value.toString() }
+}
+
 
 //class CanViewModel : ViewModel() {
 //    var ipAddress by mutableStateOf("")
@@ -73,6 +85,8 @@ import com.bitsensing.bcan.ui.theme.bCANTheme
 fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = viewModel()) {
     val uiState = mainViewModel.canUiState
 
+    var latestCanData by remember { mutableStateOf<CanData?>(null) }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -80,14 +94,27 @@ fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = vie
     ) {
         when (uiState) {
             is CanUiState.Success -> {
-                Text("Speed: ${uiState.canData.speed} km/h")
-                Text("RPM: ${uiState.canData.rpm}")
+                latestCanData = uiState.canData
+                Text("ID: ${uiState.canData.id}")
+                Text("HEX: ${uiState.canData.rawData}")
+                val decodedMap = uiState.canData.decodedData.toMap()
+                for ((key, value) in decodedMap) {
+                    Text("$key: $value")
+                }
+
             }
             is CanUiState.Error -> {
                 Text("Error fetching data.")
             }
             is CanUiState.Loading -> {
-                CircularProgressIndicator()
+                latestCanData?.let {
+                    Text("ID: ${it.id}")
+                    Text("HEX: ${it.rawData}")
+                    val decodedMap = it.decodedData.toMap()
+                    for ((key, value) in decodedMap) {
+                        Text("$key: $value")
+                    }
+                } ?: CircularProgressIndicator()
             }
         }
         Button(onClick = { mainViewModel.getCanData() }) {
