@@ -31,9 +31,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,32 +58,6 @@ fun DecodedData.toMap(): Map<String, Any?> {
     return json.mapValues { it.value.toString() }
 }
 
-
-//class CanViewModel : ViewModel() {
-//    var ipAddress by mutableStateOf("")
-//    var frames = mutableStateListOf<String>()
-//    var isLoading by mutableStateOf(false)
-//
-//    private fun isValidIp(ip: String): Boolean {
-//        val regex = Regex("^\\d{1,3}(\\.\\d{1,3}){3}$")
-//        return regex.matches(ip) && ip.split(".").all { it.toInt() in 0..255 }
-//    }
-//
-//    fun loadFrames() {
-//        if (!isValidIp(ipAddress)) return
-//        val repo = CanRepository(ipAddress)
-//        viewModelScope.launch {
-//            isLoading = true
-//            val response = repo.fetchCanFrames()
-//            if (response.isSuccessful) {
-//                frames.clear()
-//                frames.addAll(response.body()?.frames?.map { "${it.name}: ${it.decoded}" } ?: listOf())
-//            }
-//            isLoading = false
-//        }
-//    }
-//}
-
 @Composable
 fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = viewModel()) {
     val uiState = mainViewModel.canUiState
@@ -96,7 +73,7 @@ fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = vie
             is CanUiState.Success -> {
                 latestCanData = uiState.canData
                 Text("ID: ${uiState.canData.id}")
-                Text("HEX: ${uiState.canData.rawData}")
+                Text("Raw: ${uiState.canData.rawData}")
                 for ((key, value) in uiState.canData.decodedData.toMap()) {
                     Text("$key: $value")
                 }
@@ -108,7 +85,7 @@ fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = vie
             is CanUiState.Loading -> {
                 latestCanData?.let {
                     Text("ID: ${it.id}")
-                    Text("HEX: ${it.rawData}")
+                    Text("Raw: ${it.rawData}")
                     for ((key, value) in it.decodedData.toMap()) {
                         Text("$key: $value")
                     }
@@ -130,24 +107,136 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-//@Composable
-//fun MainScreen(modifier: Modifier = Modifier) {
-//
-//    // val viewModel: CanViewModel = viewModel()
-//    Surface(modifier) {
-//        Column(
-//            verticalArrangement = Arrangement.Center,
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            Button(onClick = { /* TODO */ }) {
-//                Text("Fetch CAN Data")
-//            }
-//        }
-//    }
-//}
-//
 @Preview
 @Composable
 fun MainScreenPreview() {
     MainScreen(Modifier.fillMaxSize())
+}
+
+//@Composable
+//private fun CanMessagePanels(
+//    modifier: Modifier = Modifier,
+//    names: List<String> = List(30) { "$it" }
+//) {
+//    LazyColumn(modifier = modifier.padding(vertical = 4.dp)) {
+//        items(items = names) { name ->
+//            CanMessagePanel(name = name)
+//        }
+//    }
+//}
+
+@Composable
+private fun CanMessagePanel(canData: CanData, modifier: Modifier = Modifier) {
+
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    val id = canData.id
+    val idHex = Integer.toHexString(id)
+    val rawData = canData.rawData
+    val decodedData = canData.decodedData
+
+    Surface(
+        color = MaterialTheme.colorScheme.primary,
+        modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp).clip(RoundedCornerShape(16.dp))
+    ) {
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp)
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+        ){
+            Column(modifier = Modifier
+                .weight(1f)
+                .padding(12.dp)
+            ) {
+                Text(text = "$id")
+                Text(text = "$idHex", style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight =  FontWeight.ExtraBold
+                )
+                )
+                if (expanded) {
+                    Text(
+                        text = ("Composem ipsum color sit lazy, " +
+                                "padding theme elit, sed do bouncy. ").repeat(4),)
+                }
+            }
+            IconButton(
+                onClick = { expanded = !expanded },
+                modifier = Modifier.padding(top = 0.dp)
+            ) {
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = if (expanded) {
+                        stringResource((R.string.show_less))
+                    } else {
+                        stringResource((R.string.show_more))
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CanMessagePanels(
+    modifier: Modifier = Modifier,
+    names: List<String> = List(30) { "temp" }
+) {
+    val dummyCanDataList: List<CanData> = listOf(
+        CanData(
+            id = 1104,
+            rawData = "0x12345678",
+            decodedData = DecodedData(
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1,
+                1,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            )
+        ),
+        CanData(
+            id = 1204,
+            rawData = "0x12345678",
+            decodedData = DecodedData(
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1,
+                1,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            )
+        )
+    )
+
+    LazyColumn(modifier = modifier.padding(vertical = 4.dp)) {
+        items(items = dummyCanDataList) { dummyCanData ->
+            CanMessagePanel(canData = dummyCanData)
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320)
+@Composable
+fun CanMessagePanelPreview() {
+    bCANTheme {
+        Column {
+            CanMessagePanels()
+
+        }
+    }
 }
