@@ -107,7 +107,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Preview
+//@Preview
 @Composable
 fun MainScreenPreview() {
     MainScreen(Modifier.fillMaxSize())
@@ -133,6 +133,7 @@ private fun CanMessagePanel(canData: CanData, modifier: Modifier = Modifier) {
     val id = canData.id
     val idHex = Integer.toHexString(id)
     val rawData = canData.rawData
+    val formattedRawData = rawData.chunked(2).joinToString( " ")
     val decodedData = canData.decodedData
 
     Surface(
@@ -154,14 +155,15 @@ private fun CanMessagePanel(canData: CanData, modifier: Modifier = Modifier) {
                 .padding(12.dp)
             ) {
                 Text(text = "$id")
-                Text(text = "$idHex", style = MaterialTheme.typography.headlineMedium.copy(
+                Text(text = "0x$idHex", style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight =  FontWeight.ExtraBold
                 )
                 )
                 if (expanded) {
-                    Text(
-                        text = ("Composem ipsum color sit lazy, " +
-                                "padding theme elit, sed do bouncy. ").repeat(4),)
+                    Text(formattedRawData, modifier = Modifier.padding(10.dp))
+                    for ((key, value) in decodedData.toMap()) {
+                        Text("$key: $value")
+                    }
                 }
             }
             IconButton(
@@ -189,7 +191,7 @@ private fun CanMessagePanels(
     val dummyCanDataList: List<CanData> = listOf(
         CanData(
             id = 1104,
-            rawData = "0x12345678",
+            rawData = "12345678",
             decodedData = DecodedData(
                 1.0,
                 1.0,
@@ -206,7 +208,7 @@ private fun CanMessagePanels(
         ),
         CanData(
             id = 1204,
-            rawData = "0x12345678",
+            rawData = "12345678",
             decodedData = DecodedData(
                 1.0,
                 1.0,
@@ -230,13 +232,10 @@ private fun CanMessagePanels(
     }
 }
 
-@Preview(showBackground = true, widthDp = 320)
+@Preview(showBackground = true)
 @Composable
 fun CanMessagePanelPreview() {
     bCANTheme {
-        Column {
-            CanMessagePanels()
-
-        }
+        CanMessagePanels()
     }
 }
