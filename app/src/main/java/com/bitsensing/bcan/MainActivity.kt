@@ -71,11 +71,11 @@ fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = vie
     ) {
         when (uiState) {
             is CanUiState.Success -> {
-                latestCanData = uiState.canData
-                Text("ID: ${uiState.canData.id}")
-                Text("Raw: ${uiState.canData.rawData}")
-                for ((key, value) in uiState.canData.decodedData.toMap()) {
-                    Text("$key: $value")
+               latestCanData = uiState.canData
+                LazyColumn(modifier = modifier.padding(vertical = 100.dp)) {
+                    items(items = listOf<CanData>(uiState.canData, uiState.canData)) { canData ->
+                        CanMessagePanel(canData = canData)
+                    }
                 }
 
             }
@@ -84,10 +84,10 @@ fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = vie
             }
             is CanUiState.Loading -> {
                 latestCanData?.let {
-                    Text("ID: ${it.id}")
-                    Text("Raw: ${it.rawData}")
-                    for ((key, value) in it.decodedData.toMap()) {
-                        Text("$key: $value")
+                    LazyColumn(modifier = modifier.padding(vertical = 100.dp)) {
+                        items(items = listOf<CanData>(it, it)) { canData ->
+                            CanMessagePanel(canData = canData)
+                        }
                     }
                 } ?: CircularProgressIndicator()
             }
