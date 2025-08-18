@@ -130,11 +130,11 @@ private fun CanMessagePanel(canData: CanData, modifier: Modifier = Modifier) {
 
     var expanded by rememberSaveable { mutableStateOf(false) }
 
-    val id = canData.id
+    val id = canData.canId
     val idHex = Integer.toHexString(id)
-    val rawData = canData.rawData
+    val rawData = canData.raw
     val formattedRawData = rawData.chunked(2).joinToString( " ")
-    val decodedData = canData.decodedData
+    val decodedData = canData.signals
 
     Surface(
         color = MaterialTheme.colorScheme.primary,
@@ -183,59 +183,59 @@ private fun CanMessagePanel(canData: CanData, modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun CanMessagePanels(
-    modifier: Modifier = Modifier,
-    names: List<String> = List(30) { "temp" }
-) {
-    val dummyCanDataList: List<CanData> = listOf(
-        CanData(
-            id = 1104,
-            rawData = "12345678",
-            decodedData = DecodedData(
-                1.0,
-                1.0,
-                1.0,
-                1.0,
-                1.0,
-                1,
-                1,
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            )
-        ),
-        CanData(
-            id = 1204,
-            rawData = "12345678",
-            decodedData = DecodedData(
-                1.0,
-                1.0,
-                1.0,
-                1.0,
-                1.0,
-                1,
-                1,
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            )
-        )
-    )
+//@Composable
+//private fun CanMessagePanels(
+//    modifier: Modifier = Modifier,
+//    names: List<String> = List(30) { "temp" }
+//) {
+//    val dummyCanDataList: List<CanData> = listOf(
+//        CanData(
+//            id = 1104,
+//            rawData = "12345678",
+//            decodedData = DecodedData(
+//                1.0,
+//                1.0,
+//                1.0,
+//                1.0,
+//                1.0,
+//                1,
+//                1,
+//                1.0,
+//                1.0,
+//                1.0,
+//                1.0
+//            )
+//        ),
+//        CanData(
+//            id = 1204,
+//            rawData = "12345678",
+//            decodedData = DecodedData(
+//                1.0,
+//                1.0,
+//                1.0,
+//                1.0,
+//                1.0,
+//                1,
+//                1,
+//                1.0,
+//                1.0,
+//                1.0,
+//                1.0
+//            )
+//        )
+//    )
+//
+//    LazyColumn(modifier = modifier.padding(vertical = 4.dp)) {
+//        items(items = dummyCanDataList) { dummyCanData ->
+//            CanMessagePanel(canData = dummyCanData)
+//        }
+//    }
+//}
 
-    LazyColumn(modifier = modifier.padding(vertical = 4.dp)) {
-        items(items = dummyCanDataList) { dummyCanData ->
-            CanMessagePanel(canData = dummyCanData)
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun CanMessagePanelPreview() {
-    bCANTheme {
-        CanMessagePanels()
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun CanMessagePanelPreview() {
+//    bCANTheme {
+//        CanMessagePanels()
+//    }
+//}
