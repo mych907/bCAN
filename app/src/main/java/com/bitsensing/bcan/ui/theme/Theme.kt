@@ -27,7 +27,7 @@ private val LightColorScheme = lightColorScheme(
     surface = Blue,
     onSurface = Color.White,
     primary = LightBlue,
-    onPrimary = Navy
+    onPrimary = Color.Black
 )
 
 @Composable

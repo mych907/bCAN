@@ -31,8 +31,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
@@ -43,6 +45,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -66,37 +69,43 @@ fun MainScreen(
     mainViewModel: MainViewModel = viewModel()
 ) {
     val uiState = mainViewModel.canUiState
+    val list = (uiState as? CanUiState.Success)?.canDataList.orEmpty()
+    val isRefreshing = (uiState as? CanUiState.Success)?.isRefreshing == true
+    val listState = rememberLazyListState()
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        when (uiState) {
-            is CanUiState.Success -> {
-                if (uiState.isRefreshing) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
-                LazyColumn(modifier = modifier.padding(vertical = 100.dp)) {
-                    items(uiState.canDataList, key = { it.hashCode() }) { canData ->
-                        CanMessagePanel(canData = canData)
-                    }
-                }
-            }
-
-            is CanUiState.Error -> {
-                Text("Error fetching data.")
-                // (Optional) If you also want to keep last cache visible on Error,
-                // keep emitting Success in VM as shown, and you won't hit this branch after first data.
-            }
-
-            is CanUiState.Loading -> {
-                // Shown only before first successful fetch
-                CircularProgressIndicator()
+    Box(Modifier.fillMaxSize().padding(top = 80.dp)) {
+        // List stays pinned; no vertical re-centering
+        LazyColumn(
+            state = listState,
+            modifier = modifier
+                .fillMaxSize()
+                .padding(top = 4.dp, bottom = 80.dp) // keep stable padding if you need it
+        ) {
+            // Use a real stable key; if you have a frame counter or timestamp, prefer that.
+            items(list, key = { it.canId /* or it.timestamp.toBits() */ }) { canData ->
+                CanMessagePanel(canData = canData)
             }
         }
 
-        Button(onClick = { mainViewModel.getCanData() }) {
+        // Overlay a thin, fixed-height progress “bar” with alpha instead of show/hide.
+        // No layout height change → no bounce.
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .align(Alignment.TopCenter)
+                .alpha(if (isRefreshing) 1f else 0f)
+        ) {
+            LinearProgressIndicator(Modifier.fillMaxSize())
+        }
+
+        // Keep the button fixed; not centered with content height.
+        Button(
+            onClick = { mainViewModel.getCanData() },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        ) {
             Text("Refresh")
         }
     }
@@ -106,7 +115,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MainScreen(modifier = Modifier.fillMaxSize())
+            bCANTheme {
+                MainScreen(modifier = Modifier.fillMaxSize())
+            }
         }
     }
 }
@@ -149,7 +160,7 @@ private fun CanMessagePanel(canData: CanData, modifier: Modifier = Modifier) {
             .padding(12.dp)
             .animateContentSize(
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    dampingRatio = Spring.DampingRatioLowBouncy,
                     stiffness = Spring.StiffnessLow
                 )
             )

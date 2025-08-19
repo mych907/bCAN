@@ -35,7 +35,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             while (isActive) {
                 getCanData()
-                delay(50)
+                delay(1000)
             }
         }
     }
