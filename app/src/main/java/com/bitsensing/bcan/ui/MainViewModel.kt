@@ -12,9 +12,13 @@ import java.io.IOException
 import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlin.collections.listOf
 
 sealed interface CanUiState {
-    data class Success(val canData: CanData) : CanUiState
+    data class Success(
+        val canDataList: List<CanData>,
+        val isRefreshing: Boolean = false
+    ) : CanUiState
     object Error : CanUiState
     object Loading : CanUiState
 }
@@ -23,48 +27,59 @@ class MainViewModel : ViewModel() {
     var canUiState: CanUiState by mutableStateOf(CanUiState.Loading)
         private set
 
-    init {
-        startAutoRefresh()
-    }
+    private var cache: List<CanData> = emptyList()
+
+    init { startAutoRefresh() }
 
     private fun startAutoRefresh() {
         viewModelScope.launch {
             while (isActive) {
                 getCanData()
-                delay(1000)
+                delay(50)
             }
         }
     }
 
     fun getCanData() {
         viewModelScope.launch {
-            canUiState = CanUiState.Loading
-            canUiState = try {
-                val response = CanApi.retrofitService.getCanFrames() // Store the response
+            val hadData = canUiState is CanUiState.Success
+            if (hadData) {
+                val s = canUiState as CanUiState.Success
+                canUiState = s.copy(isRefreshing = true)   // keep showing list
+            } else {
+                canUiState = CanUiState.Loading            // only before first data
+            }
 
-                // Check if the request was successful (HTTP code 2xx)
+            canUiState = try {
+                val response = CanApi.retrofitService.getCanFrames()
                 if (response.isSuccessful) {
-                    // Get the body and ensure it's not null
-                    val canData = response.body()
-                    if (canData != null) {
-                        CanUiState.Success(canData)
+                    val body  = response.body()
+                    if (body  != null) {
+                        val canDataList = body.map { (id, data) ->
+                            data.copy(canId = id.toInt())
+                        }
+                        val updated = when (val cur = canUiState) {
+                            is CanUiState.Success -> cur.canDataList
+                            else -> canDataList
+                        }
+                        CanUiState.Success(updated, isRefreshing = false)
                     } else {
-                        // Handle the case where the body is null even on a successful response
-                        CanUiState.Error
+                        // keep old list if we have one; else Error
+                        if (cache.isNotEmpty()) CanUiState.Success(cache, isRefreshing = false)
+                        else CanUiState.Error
                     }
                 } else {
-                    // Handle non-successful responses (e.g., 404, 500)
-                    CanUiState.Error
+                    if (cache.isNotEmpty()) CanUiState.Success(cache, isRefreshing = false)
+                    else CanUiState.Error
                 }
             } catch (e: IOException) {
-                Log.e("MainViewModel", "IOException, you might have a network issue.", e)
-                canUiState = CanUiState.Error
-                // Handle exceptions related to network connectivity issues (e.g., no internet)
-                CanUiState.Error
+                Log.e("MainViewModel", "Network issue.", e)
+                if (cache.isNotEmpty()) CanUiState.Success(cache, isRefreshing = false)
+                else CanUiState.Error
             } catch (e: Exception) {
-                Log.e("MainViewModel", "An unexpected error occurred.", e)
-                canUiState = CanUiState.Error
-                CanUiState.Error
+                Log.e("MainViewModel", "Unexpected error.", e)
+                if (cache.isNotEmpty()) CanUiState.Success(cache, isRefreshing = false)
+                else CanUiState.Error
             }
         }
     }

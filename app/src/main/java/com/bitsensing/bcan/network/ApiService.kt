@@ -9,6 +9,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import com.bitsensing.bcan.data.CanData
 
 private const val BASE_URL = "https://bcan-server.onrender.com/" // Replace with your PC's IP and port
+typealias CanResponse = Map<String, CanData>
 
 private val retrofit = Retrofit.Builder()
     .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
@@ -17,7 +18,7 @@ private val retrofit = Retrofit.Builder()
 
 interface ApiService {
     @GET("/data")
-    suspend fun getCanFrames(): Response<CanData>
+    suspend fun getCanFrames(): Response<CanResponse>
 }
 
 object CanApi {

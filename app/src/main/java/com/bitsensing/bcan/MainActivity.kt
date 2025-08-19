@@ -40,6 +40,8 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
@@ -59,10 +61,11 @@ fun DecodedData.toMap(): Map<String, Any?> {
 }
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = viewModel()) {
+fun MainScreen(
+    modifier: Modifier = Modifier,
+    mainViewModel: MainViewModel = viewModel()
+) {
     val uiState = mainViewModel.canUiState
-
-    var latestCanData by remember { mutableStateOf<CanData?>(null) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -71,27 +74,28 @@ fun MainScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = vie
     ) {
         when (uiState) {
             is CanUiState.Success -> {
-               latestCanData = uiState.canData
+                if (uiState.isRefreshing) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
                 LazyColumn(modifier = modifier.padding(vertical = 100.dp)) {
-                    items(items = listOf<CanData>(uiState.canData, uiState.canData)) { canData ->
+                    items(uiState.canDataList, key = { it.hashCode() }) { canData ->
                         CanMessagePanel(canData = canData)
                     }
                 }
-
             }
+
             is CanUiState.Error -> {
                 Text("Error fetching data.")
+                // (Optional) If you also want to keep last cache visible on Error,
+                // keep emitting Success in VM as shown, and you won't hit this branch after first data.
             }
+
             is CanUiState.Loading -> {
-                latestCanData?.let {
-                    LazyColumn(modifier = modifier.padding(vertical = 100.dp)) {
-                        items(items = listOf<CanData>(it, it)) { canData ->
-                            CanMessagePanel(canData = canData)
-                        }
-                    }
-                } ?: CircularProgressIndicator()
+                // Shown only before first successful fetch
+                CircularProgressIndicator()
             }
         }
+
         Button(onClick = { mainViewModel.getCanData() }) {
             Text("Refresh")
         }

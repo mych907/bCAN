@@ -6,13 +6,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CanData(
     val timestamp: Float,
-    val canId: Int,
     val isExtendedId: Boolean,
     val dlc: Int,
     val isFd: Boolean,
     val name: String,
-    val signals: Map<String, Float>,   // adjust type if you know signal values are numeric
-    val raw: String
+    val signals: Map<String, Float>,
+    val raw: String,
+    @Transient val canId: Int = -1   // populated manually from the map key
 )
 
 fun DecodedData.toMap(): Map<String, Any> = mapOf(
