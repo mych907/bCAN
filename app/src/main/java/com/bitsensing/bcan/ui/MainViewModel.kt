@@ -53,18 +53,18 @@ class MainViewModel : ViewModel() {
             canUiState = try {
                 val response = CanApi.retrofitService.getCanFrames()
                 if (response.isSuccessful) {
-                    val body  = response.body()
-                    if (body  != null) {
-                        val canDataList = body.map { (id, data) ->
+                    val body = response.body()
+                    if (body != null) {
+                        // Map<String, CanData> -> List<CanData> (inject canId)
+                        val freshList = body.map { (id, data) ->
                             data.copy(canId = id.toInt())
                         }
-                        val updated = when (val cur = canUiState) {
-                            is CanUiState.Success -> cur.canDataList
-                            else -> canDataList
-                        }
-                        CanUiState.Success(updated, isRefreshing = false)
+                        // Optional: keep a stable order
+                        val replaced = freshList.sortedBy { it.canId }
+
+                        cache = replaced
+                        CanUiState.Success(replaced, isRefreshing = false)
                     } else {
-                        // keep old list if we have one; else Error
                         if (cache.isNotEmpty()) CanUiState.Success(cache, isRefreshing = false)
                         else CanUiState.Error
                     }
